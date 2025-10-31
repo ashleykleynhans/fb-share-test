@@ -8,6 +8,9 @@ import os
 # Get root_path from environment or X-Script-Name header
 app = FastAPI(root_path=os.getenv("ROOT_PATH", ""))
 
+# Mount static files (public directory) BEFORE middleware
+app.mount("/public", StaticFiles(directory="public"), name="public")
+
 # Middleware to handle X-Script-Name header for path prefixes
 @app.middleware("http")
 async def add_script_name(request: Request, call_next):
@@ -16,9 +19,6 @@ async def add_script_name(request: Request, call_next):
         request.scope["root_path"] = script_name
     response = await call_next(request)
     return response
-
-# Mount static files (public directory)
-app.mount("/public", StaticFiles(directory="public"), name="public")
 
 # Set up templates with auto-reload enabled
 templates = Jinja2Templates(directory="templates")
