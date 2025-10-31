@@ -48,7 +48,11 @@ fi
 echo ""
 
 # Check if www subdomain should be included
-read -p "Include www.$DOMAIN_NAME? (y/n): " INCLUDE_WWW
+echo "NOTE: Only include www subdomain if you have DNS configured for it!"
+echo "Most users should answer 'n' here (just press Enter)."
+echo ""
+read -p "Include www.$DOMAIN_NAME? (y/N, default=N): " INCLUDE_WWW
+INCLUDE_WWW=${INCLUDE_WWW:-n}  # Default to 'n' if empty
 
 echo ""
 echo "Obtaining SSL certificate..."
@@ -57,12 +61,14 @@ echo ""
 
 # Run certbot
 if [ "$INCLUDE_WWW" = "y" ] || [ "$INCLUDE_WWW" = "Y" ]; then
+    echo "Getting certificate for both $DOMAIN_NAME and www.$DOMAIN_NAME..."
     certbot --nginx -d $DOMAIN_NAME -d www.$DOMAIN_NAME --non-interactive --agree-tos --email $EMAIL --redirect
     echo ""
     echo "✓ SSL certificate obtained for:"
     echo "  - $DOMAIN_NAME"
     echo "  - www.$DOMAIN_NAME"
 else
+    echo "Getting certificate for $DOMAIN_NAME only..."
     certbot --nginx -d $DOMAIN_NAME --non-interactive --agree-tos --email $EMAIL --redirect
     echo ""
     echo "✓ SSL certificate obtained for $DOMAIN_NAME"

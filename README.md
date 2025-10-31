@@ -6,7 +6,16 @@ A Python FastAPI application for testing image sharing on social media platforms
 
 **Development:**
 ```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the application
 uvicorn main:app --reload
 ```
 
@@ -72,7 +81,7 @@ The script will prompt you for:
 4. **WWW subdomain** - Whether to include www.yourdomain.com
 
 This script will:
-- Copy files to `/var/www/fb-share-test`
+- Copy files to `/opt/fb-share-test`
 - Create a Python virtual environment
 - Install dependencies
 - Set up systemd service
@@ -90,15 +99,15 @@ If you prefer to deploy manually:
 **1. Copy files to your web server:**
 ```bash
 # Create directory
-sudo mkdir -p /var/www/fb-share-test
+sudo mkdir -p /opt/fb-share-test
 
 # Copy files (use scp, rsync, or git clone)
-sudo cp -r /path/to/fb-share-test/* /var/www/fb-share-test/
+sudo cp -r /path/to/fb-share-test/* /opt/fb-share-test/
 ```
 
 **2. Set up Python virtual environment:**
 ```bash
-cd /var/www/fb-share-test
+cd /opt/fb-share-test
 sudo python3 -m venv venv
 sudo ./venv/bin/pip install -r requirements.txt
 ```
@@ -140,8 +149,8 @@ sudo systemctl reload nginx
 
 **5. Set permissions:**
 ```bash
-sudo chown -R www-data:www-data /var/www/fb-share-test
-sudo chmod -R 755 /var/www/fb-share-test
+sudo chown -R www-data:www-data /opt/fb-share-test
+sudo chmod -R 755 /opt/fb-share-test
 ```
 
 #### SSL Certificate Setup
@@ -235,7 +244,7 @@ To update after making changes:
 
 ```bash
 # Copy updated files to server
-sudo cp -r /path/to/updated/files/* /var/www/fb-share-test/
+sudo cp -r /path/to/updated/files/* /opt/fb-share-test/
 
 # Restart the service
 sudo systemctl restart fb-share

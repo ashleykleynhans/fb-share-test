@@ -9,7 +9,7 @@ echo "=== Facebook Share Test Deployment Script ==="
 echo ""
 
 # Configuration variables (modify these as needed)
-APP_DIR="/var/www/fb-share-test"
+APP_DIR="/opt/fb-share-test"
 APP_USER="www-data"
 APP_GROUP="www-data"
 SERVICE_NAME="fb-share"
@@ -121,13 +121,19 @@ if [ "$SETUP_SSL" = "y" ] || [ "$SETUP_SSL" = "Y" ]; then
         echo "  You can run this later: sudo certbot --nginx -d $DOMAIN_NAME"
     else
         echo "  Obtaining SSL certificate for $DOMAIN_NAME..."
+        echo ""
+        echo "  NOTE: Only include www subdomain if you have DNS configured for it!"
+        echo "  Most users should answer 'n' here."
 
         # Check if www subdomain should be included
-        read -p "Include www.$DOMAIN_NAME? (y/n): " INCLUDE_WWW
+        read -p "Include www.$DOMAIN_NAME? (y/N, default=N): " INCLUDE_WWW
+        INCLUDE_WWW=${INCLUDE_WWW:-n}  # Default to 'n' if empty
 
         if [ "$INCLUDE_WWW" = "y" ] || [ "$INCLUDE_WWW" = "Y" ]; then
+            echo "  Getting certificate for both $DOMAIN_NAME and www.$DOMAIN_NAME..."
             certbot --nginx -d $DOMAIN_NAME -d www.$DOMAIN_NAME --non-interactive --agree-tos --email $EMAIL --redirect
         else
+            echo "  Getting certificate for $DOMAIN_NAME only..."
             certbot --nginx -d $DOMAIN_NAME --non-interactive --agree-tos --email $EMAIL --redirect
         fi
 

@@ -6,9 +6,9 @@ After=network.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/fb-share-test
-Environment="PATH=/var/www/fb-share-test/venv/bin"
-ExecStart=/var/www/fb-share-test/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 4
+WorkingDirectory=/opt/fb-share-test
+Environment="PATH=/opt/fb-share-test/venv/bin"
+ExecStart=/opt/fb-share-test/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 4
 Restart=always
 RestartSec=3
 
