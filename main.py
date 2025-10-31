@@ -167,12 +167,25 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
 
     # Create response with custom headers
     from datetime import datetime
-    from starlette.responses import Response
 
     current_time = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-    # Build raw_headers list with duplicates
-    raw_headers = [
+    # Create basic HTML response
+    response = HTMLResponse(content=html_content)
+
+    # Set standard headers
+    response.headers["Cache-Control"] = "max-age=0, must-revalidate, private"
+    response.headers["Expires"] = current_time
+    response.headers["Server"] = "Share Tester 1.0.0"
+    response.headers["Backend-Version"] = "v1"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token"
+    response.headers["Access-Control-Expose-Headers"] = "Authorization,user-token"
+
+    # Build raw_headers list to include duplicate Vary headers
+    response.raw_headers = [
         (b"content-type", b"text/html; charset=utf-8"),
         (b"cache-control", b"max-age=0, must-revalidate, private"),
         (b"expires", current_time.encode()),
@@ -187,7 +200,7 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
         (b"vary", b"Accept-Encoding")  # Duplicate header
     ]
 
-    return Response(content=html_content, media_type="text/html", headers=raw_headers)
+    return response
 
 
 @app.get("/share", response_class=HTMLResponse)
