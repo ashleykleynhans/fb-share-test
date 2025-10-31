@@ -31,9 +31,9 @@ The application will start at `http://localhost:8000`
 
 ### Production Deployment (Nginx Web Server)
 
-#### Quick Deployment (Automated)
+#### Quick Deployment (Automated) - **RECOMMENDED**
 
-The easiest way to deploy is using the provided deployment script:
+The easiest way to deploy is using the provided deployment script, which includes automatic Let's Encrypt SSL setup:
 
 ```bash
 # On your server, navigate to the project directory
@@ -43,20 +43,23 @@ cd /path/to/fb-share-test
 sudo ./deploy.sh
 ```
 
+The script will prompt you for:
+1. **Domain name** (e.g., example.com)
+2. **SSL setup** - Choose whether to set up Let's Encrypt SSL certificate
+3. **Email address** - For SSL certificate notifications
+4. **WWW subdomain** - Whether to include www.yourdomain.com
+
 This script will:
 - Copy files to `/var/www/fb-share-test`
 - Create a Python virtual environment
 - Install dependencies
 - Set up systemd service
-- Configure nginx
+- Configure nginx with your domain
+- **Automatically obtain and configure SSL certificate** (if you choose)
+- Set up auto-renewal for SSL certificates
 - Start the application
 
-After deployment, edit the nginx config to use your domain:
-```bash
-sudo nano /etc/nginx/sites-available/fb-share
-# Replace 'your-domain.com' with your actual domain
-sudo systemctl reload nginx
-```
+**Note:** Make sure your domain's DNS is already pointing to your server's IP address before running the script, as Let's Encrypt needs to verify domain ownership.
 
 #### Manual Deployment
 
@@ -119,10 +122,28 @@ sudo chown -R www-data:www-data /var/www/fb-share-test
 sudo chmod -R 755 /var/www/fb-share-test
 ```
 
-#### SSL Certificate (Optional but Recommended)
+#### SSL Certificate Setup
 
-For HTTPS support, use Let's Encrypt:
+**IMPORTANT:** HTTPS is required for optimal Facebook sharing. Facebook strongly prefers HTTPS URLs.
 
+**Option 1: During Initial Deployment (Recommended)**
+The `deploy.sh` script includes interactive SSL setup. Just answer "y" when prompted and provide your email address.
+
+**Option 2: Add SSL After Deployment**
+If you skipped SSL during deployment or want to add it later, use the standalone SSL setup script:
+
+```bash
+sudo ./setup-ssl.sh
+```
+
+This script will:
+- Install certbot (if not already installed)
+- Obtain a free Let's Encrypt SSL certificate
+- Configure nginx to use HTTPS
+- Set up automatic HTTP to HTTPS redirect
+- Configure auto-renewal (certificates renew every 90 days)
+
+**Option 3: Manual SSL Setup**
 ```bash
 # Install certbot
 sudo apt install certbot python3-certbot-nginx
@@ -130,10 +151,25 @@ sudo apt install certbot python3-certbot-nginx
 # Get SSL certificate
 sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 
-# Certbot will automatically update your nginx config
+# Enable auto-renewal
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
 ```
 
-The nginx.conf file includes commented SSL configuration that certbot will use.
+**SSL Certificate Management:**
+```bash
+# Test certificate renewal
+sudo certbot renew --dry-run
+
+# Force certificate renewal
+sudo certbot renew --force-renewal
+
+# View installed certificates
+sudo certbot certificates
+
+# Check auto-renewal status
+sudo systemctl status certbot.timer
+```
 
 #### Managing the Application
 
