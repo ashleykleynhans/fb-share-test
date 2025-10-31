@@ -198,8 +198,8 @@
         </div>
 
         <div class="content">
-            <div class="image-container">
-                <img src="{{ image_url }}" alt="{{ title }}">
+            <div class="image-container" id="image-container">
+                <!-- Image will be inserted here by JavaScript -->
             </div>
 
             <p class="description">{{ description }}</p>
@@ -236,5 +236,16 @@
             <a href="/share?id=abc456" class="nav-link">Query Parameter Route (?id=abc456)</a>
         </div>
     </div>
+
+    <script>
+        // Insert image on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const imageContainer = document.getElementById('image-container');
+            const img = document.createElement('img');
+            img.src = '{{ image_url }}';
+            img.alt = '{{ title }}';
+            imageContainer.appendChild(img);
+        });
+    </script>
 </body>
 </html>
