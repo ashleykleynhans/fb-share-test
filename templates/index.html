@@ -5,9 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
 
+    {% if meta_refresh %}
+    <!-- Meta Refresh Redirect - This causes the Facebook crawling issue! -->
+    <meta http-equiv="refresh" content="0; url={{ meta_refresh }}">
+    {% endif %}
+
     <!-- Open Graph / Facebook Meta Tags -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ page_url }}">
+    <meta property="og:url" content="{{ og_url }}">
     <meta property="og:title" content="{{ title }}">
     <meta property="og:description" content="{{ description }}">
     <meta property="og:image" content="{{ image_url }}">
@@ -208,6 +213,33 @@
                 <strong>Current URL:</strong> <code>{{ page_url }}</code>
             </div>
 
+            <div class="info-box">
+                <strong>og:url Meta Tag:</strong> <code>{{ og_url }}</code>
+            </div>
+
+            {% if meta_refresh %}
+            <div class="info-box" style="background: #fff3cd; border-left-color: #ff9800;">
+                <strong>⚠️ Meta Refresh Active:</strong> This page will redirect to <code>{{ meta_refresh }}</code>
+                <br><br>
+                <strong>This replicates the Facebook issue:</strong>
+                <ul style="margin: 10px 0 0 20px;">
+                    <li>Meta refresh swaps parameter order (qv & ssid → ssid & qv)</li>
+                    <li>og:url is missing the 'qv' parameter</li>
+                    <li>Facebook sees URL mismatch → Reports 403 error</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if og_url != page_url %}
+            <div class="info-box" style="background: #ffebee; border-left-color: #f44336;">
+                <strong>❌ URL Mismatch Detected:</strong>
+                <br>Current URL: <code>{{ page_url }}</code>
+                <br>og:url Tag: <code>{{ og_url }}</code>
+                <br><br>
+                Facebook will see this mismatch as suspicious and may report a crawl error!
+            </div>
+            {% endif %}
+
             <div class="share-section">
                 <h2>Share this image on social media</h2>
                 <div class="share-buttons">
@@ -232,8 +264,9 @@
 
         <div class="navigation">
             <a href="/" class="nav-link">Path-based Route (/)</a>
-            <a href="/share?id=test123" class="nav-link">Query Parameter Route (?id=test123)</a>
-            <a href="/share?id=abc456" class="nav-link">Query Parameter Route (?id=abc456)</a>
+            <a href="/share?qv=edMLk&ssid=zL8RQ" class="nav-link">Two Params - Order 1 (qv first) ⚠️ Triggers redirect!</a>
+            <a href="/share?ssid=zL8RQ&qv=edMLk" class="nav-link">Two Params - Order 2 (ssid first)</a>
+            <a href="/share?ssid=abc123" class="nav-link">Single Param (ssid only)</a>
         </div>
     </div>
 
