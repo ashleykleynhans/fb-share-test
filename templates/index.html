@@ -31,7 +31,7 @@
     <meta name="description" content="{{ description }}">
 
     <!-- Stylesheet -->
-    <link rel="stylesheet" href="/public/style.css">
+    <link rel="stylesheet" href="{{ request.scope.get('root_path', '') }}/public/style.css">
 </head>
 <body>
     <div class="container">
@@ -116,14 +116,14 @@
         </div>
 
         <div class="navigation">
-            <a href="/" class="nav-link">Path-based Route (/)</a>
-            <a href="/share?qv=edMLk&ssid=zL8RQ" class="nav-link">🔴 /share?qv=edMLk&ssid=zL8RQ (Triggers issue!)</a>
-            <a href="/share?ssid=zL8RQ&qv=edMLk" class="nav-link">🟡 /share?ssid=zL8RQ&qv=edMLk (After redirect)</a>
-            <a href="/session?ssid=zL8RQ" class="nav-link">🟢 /session?ssid=zL8RQ (og:url destination)</a>
+            <a href="{{ request.scope.get('root_path', '') }}/" class="nav-link">Path-based Route (/)</a>
+            <a href="{{ request.scope.get('root_path', '') }}/share?qv=edMLk&ssid=zL8RQ" class="nav-link">🔴 /share?qv=edMLk&ssid=zL8RQ (Triggers issue!)</a>
+            <a href="{{ request.scope.get('root_path', '') }}/share?ssid=zL8RQ&qv=edMLk" class="nav-link">🟡 /share?ssid=zL8RQ&qv=edMLk (After redirect)</a>
+            <a href="{{ request.scope.get('root_path', '') }}/session?ssid=zL8RQ" class="nav-link">🟢 /session?ssid=zL8RQ (og:url destination)</a>
         </div>
     </div>
 
     <!-- JavaScript -->
-    <script src="/public/app.js"></script>
+    <script src="{{ request.scope.get('root_path', '') }}/public/app.js"></script>
 </body>
 </html>
