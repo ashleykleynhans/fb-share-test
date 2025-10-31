@@ -112,10 +112,10 @@ async def home(request: Request):
     )
 
 
-@app.get("/session")
+@app.get("/session", response_class=HTMLResponse)
 async def session_redirect(request: Request, ssid: str = None, qv: str = None):
     """
-    Session route that redirects to /share with both parameters.
+    Session route that returns HTML with meta refresh redirect to /share with both parameters.
     This route is used in og:url but redirects to the full /share URL.
 
     If qv is missing, it looks up the value from the database using ssid.
@@ -128,16 +128,28 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
 
         # If we found qv, redirect with both parameters
         if qv:
-            redirect_url = f"/share?ssid={ssid}&qv={qv}"
+            redirect_url = f"{request.base_url}share?ssid={ssid}&qv={qv}"
         else:
             # No qv found, just redirect with ssid
-            redirect_url = f"/share?ssid={ssid}"
+            redirect_url = f"{request.base_url}share?ssid={ssid}"
     elif qv:
-        redirect_url = f"/share?qv={qv}"
+        redirect_url = f"{request.base_url}share?qv={qv}"
     else:
-        redirect_url = "/share"
+        redirect_url = f"{request.base_url}share"
 
-    return RedirectResponse(url=redirect_url, status_code=302)
+    # Return HTML with meta refresh instead of HTTP redirect
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0; url={redirect_url}">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <p>Redirecting to <a href="{redirect_url}">{redirect_url}</a>...</p>
+</body>
+</html>"""
+
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/share", response_class=HTMLResponse)
