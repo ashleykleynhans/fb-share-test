@@ -2,6 +2,24 @@
 
 A Python FastAPI application for testing image sharing on social media platforms with proper Open Graph tags.
 
+## Quick Start
+
+**Development:**
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+**Production Deployment (with SSL):**
+```bash
+sudo ./deploy.sh  # Interactive setup with Let's Encrypt SSL
+```
+
+**Add SSL Later:**
+```bash
+sudo ./setup-ssl.sh
+```
+
 ## Features
 
 - ✅ Serves a beautiful free stock image from Unsplash
@@ -12,6 +30,10 @@ A Python FastAPI application for testing image sharing on social media platforms
 - ✅ Custom robots.txt that only allows social media crawlers
 - ✅ Responsive web design with sharing buttons
 - ✅ Static file serving from public directory
+- ✅ **Automated Let's Encrypt SSL certificate setup**
+- ✅ One-command deployment script with nginx configuration
+- ✅ Systemd service for production reliability
+- ✅ Auto-renewal of SSL certificates
 
 ## Setup
 
@@ -250,17 +272,18 @@ ngrok http 8000
 ```
 
 ### Production Testing
-Once deployed to your nginx web server with a public domain:
+
+Once deployed to your nginx web server with a public domain and SSL:
 
 1. **Access your application:**
-   - Visit `http://your-domain.com/` for the path-based route
-   - Visit `http://your-domain.com/share?id=test123` for the query parameter route
+   - Visit `https://your-domain.com/` for the path-based route
+   - Visit `https://your-domain.com/share?id=test123` for the query parameter route
 
 2. **Validate Open Graph tags:**
    - Use Facebook's Sharing Debugger: https://developers.facebook.com/tools/debug/
-   - Enter your production URL (e.g., `http://your-domain.com/`)
+   - Enter your production URL (e.g., `https://your-domain.com/`)
    - Facebook will show how your page will appear when shared
-   - You can also use this to clear Facebook's cache if you make changes
+   - Click "Scrape Again" to clear Facebook's cache if you make changes
 
 3. **Test sharing:**
    - Click the share buttons on your page
@@ -268,14 +291,16 @@ Once deployed to your nginx web server with a public domain:
    - Verify the correct image, title, and description appear in the preview
 
 4. **Test both routes:**
-   - Share the root path: `http://your-domain.com/`
-   - Share with query parameters: `http://your-domain.com/share?id=test123`
+   - Share the root path: `https://your-domain.com/`
+   - Share with query parameters: `https://your-domain.com/share?id=test123`
    - Verify both render correctly with their respective metadata
 
 **Important for Facebook sharing:**
-- Facebook requires HTTPS for optimal sharing. Use certbot to set up SSL.
-- Facebook caches OG tags. Use the Sharing Debugger to clear the cache after changes.
-- The robots.txt allows Facebook's crawler (facebookexternalhit) to access your pages.
+- ⚠️ **HTTPS is strongly recommended** - Facebook prefers HTTPS URLs and some features require it
+- 🔄 Facebook caches OG tags for performance - Use the Sharing Debugger to clear cache after changes
+- 🤖 The robots.txt allows Facebook's crawler (facebookexternalhit) to access your pages
+- 🖼️ Images should be at least 1200x630 pixels for optimal sharing (current image: 800x600)
+- 📏 OG images are cached, so changing the image may require clearing Facebook's cache
 
 ## Robots.txt
 
@@ -300,7 +325,8 @@ fb-share-test/
 ├── requirements.txt     # Python dependencies
 ├── fb-share.service     # Systemd service configuration
 ├── nginx.conf           # Nginx server configuration
-├── deploy.sh            # Automated deployment script
+├── deploy.sh            # Automated deployment script (includes SSL)
+├── setup-ssl.sh         # Standalone SSL certificate setup script
 ├── public/              # Static files directory
 │   └── image.jpg        # Sample image from Unsplash
 ├── templates/           # Jinja2 templates
