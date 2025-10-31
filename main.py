@@ -119,19 +119,35 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
     This route is used in og:url but redirects to the full /share URL.
 
     If qv is missing, it looks up the value from the database using ssid.
+    The meta refresh swaps the parameter order from the incoming request.
     """
-    # Build the redirect URL with both parameters
-    if ssid:
-        # If qv is not provided, look it up from database
-        if not qv:
-            qv = get_qv_for_ssid(ssid)
+    # If qv is not provided, look it up from database
+    if ssid and not qv:
+        qv = get_qv_for_ssid(ssid)
 
-        # If we found qv, redirect with both parameters
-        if qv:
-            redirect_url = f"{request.base_url}share?ssid={ssid}&qv={qv}"
+    # Check the order of parameters in the incoming query string
+    query_string = str(request.url.query)
+
+    # Build redirect URL with parameters in REVERSE order
+    if ssid and qv:
+        # Check which parameter came first in the incoming request
+        ssid_pos = query_string.find('ssid=')
+        qv_pos = query_string.find('qv=')
+
+        if qv_pos >= 0 and ssid_pos >= 0:
+            # Both params present in query string
+            if ssid_pos < qv_pos:
+                # ssid came first, so reverse to qv first
+                redirect_url = f"{request.base_url}share?qv={qv}&ssid={ssid}"
+            else:
+                # qv came first, so reverse to ssid first
+                redirect_url = f"{request.base_url}share?ssid={ssid}&qv={qv}"
         else:
-            # No qv found, just redirect with ssid
-            redirect_url = f"{request.base_url}share?ssid={ssid}"
+            # Only one param in query string (other was looked up from DB)
+            # Since only ssid was in the URL, put qv first in redirect
+            redirect_url = f"{request.base_url}share?qv={qv}&ssid={ssid}"
+    elif ssid:
+        redirect_url = f"{request.base_url}share?ssid={ssid}"
     elif qv:
         redirect_url = f"{request.base_url}share?qv={qv}"
     else:
