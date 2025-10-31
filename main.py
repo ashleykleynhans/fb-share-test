@@ -165,7 +165,24 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
 </body>
 </html>"""
 
-    return HTMLResponse(content=html_content)
+    # Create response with custom headers
+    from datetime import datetime
+    current_time = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+
+    headers = {
+        "Cache-Control": "max-age=0, must-revalidate, private",
+        "Expires": current_time,
+        "Server": "Share Tester 1.0.0",
+        "Backend-Version": "v1",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token",
+        "Access-Control-Expose-Headers": "Authorization,user-token",
+        "Vary": "Accept-Encoding"
+    }
+
+    return HTMLResponse(content=html_content, headers=headers)
 
 
 @app.get("/share", response_class=HTMLResponse)
