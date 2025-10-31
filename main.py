@@ -5,13 +5,25 @@ from fastapi.templating import Jinja2Templates
 import sqlite3
 import os
 
-app = FastAPI()
+# Get root_path from environment or X-Script-Name header
+app = FastAPI(root_path=os.getenv("ROOT_PATH", ""))
+
+# Middleware to handle X-Script-Name header for path prefixes
+@app.middleware("http")
+async def add_script_name(request: Request, call_next):
+    script_name = request.headers.get("X-Script-Name", "")
+    if script_name:
+        request.scope["root_path"] = script_name
+    response = await call_next(request)
+    return response
 
 # Mount static files (public directory)
 app.mount("/public", StaticFiles(directory="public"), name="public")
 
-# Set up templates
+# Set up templates with auto-reload enabled
 templates = Jinja2Templates(directory="templates")
+templates.env.auto_reload = True
+templates.env.cache = None
 
 # Database setup
 DB_PATH = "sessions.db"
