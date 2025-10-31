@@ -217,16 +217,31 @@
                 <strong>og:url Meta Tag:</strong> <code>{{ og_url }}</code>
             </div>
 
+            <div class="info-box" style="background: #e8f5e9; border-left-color: #4caf50;">
+                <strong>🔍 Debug Info:</strong>
+                <br>Route Type: <code>{{ route_type }}</code>
+                <br>Meta Refresh: <code>{{ meta_refresh if meta_refresh else 'None' }}</code>
+                {% if meta_refresh %}
+                <br><br>
+                <strong>✅ This page WILL redirect!</strong> Test this URL in Facebook debugger to see the issue.
+                {% else %}
+                <br><br>
+                <strong>ℹ️ No redirect on this page.</strong> This is either the final destination or doesn't have both params in the right order.
+                {% endif %}
+            </div>
+
             {% if meta_refresh %}
             <div class="info-box" style="background: #fff3cd; border-left-color: #ff9800;">
                 <strong>⚠️ Meta Refresh Active:</strong> This page will redirect to <code>{{ meta_refresh }}</code>
                 <br><br>
-                <strong>This replicates the Facebook issue:</strong>
-                <ul style="margin: 10px 0 0 20px;">
-                    <li>Meta refresh swaps parameter order (qv & ssid → ssid & qv)</li>
-                    <li>og:url is missing the 'qv' parameter</li>
-                    <li>Facebook sees URL mismatch → Reports 403 error</li>
-                </ul>
+                <strong>This replicates the Facebook issue - Full Flow:</strong>
+                <ol style="margin: 10px 0 0 20px;">
+                    <li><strong>Input URL:</strong> <code>/share?qv=edMLk&ssid=zL8RQ</code></li>
+                    <li><strong>Meta Refresh →</strong> <code>/share?ssid=zL8RQ&qv=edMLk</code> (params swapped!)</li>
+                    <li><strong>og:url points to:</strong> <code>/session?ssid=zL8RQ</code> (missing qv!)</li>
+                    <li><strong>/session redirects to:</strong> <code>/share?ssid=zL8RQ&qv=edMLk</code> (looks up qv from DB)</li>
+                    <li><strong>Result:</strong> Facebook sees URL mismatch → Reports 403 error</li>
+                </ol>
             </div>
             {% endif %}
 
@@ -264,9 +279,9 @@
 
         <div class="navigation">
             <a href="/" class="nav-link">Path-based Route (/)</a>
-            <a href="/share?qv=edMLk&ssid=zL8RQ" class="nav-link">Two Params - Order 1 (qv first) ⚠️ Triggers redirect!</a>
-            <a href="/share?ssid=zL8RQ&qv=edMLk" class="nav-link">Two Params - Order 2 (ssid first)</a>
-            <a href="/share?ssid=abc123" class="nav-link">Single Param (ssid only)</a>
+            <a href="/share?qv=edMLk&ssid=zL8RQ" class="nav-link">🔴 /share?qv=edMLk&ssid=zL8RQ (Triggers issue!)</a>
+            <a href="/share?ssid=zL8RQ&qv=edMLk" class="nav-link">🟡 /share?ssid=zL8RQ&qv=edMLk (After redirect)</a>
+            <a href="/session?ssid=zL8RQ" class="nav-link">🟢 /session?ssid=zL8RQ (og:url destination)</a>
         </div>
     </div>
 

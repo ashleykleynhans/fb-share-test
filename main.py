@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import sqlite3
+import os
 
 app = FastAPI()
 
@@ -10,6 +12,46 @@ app.mount("/public", StaticFiles(directory="public"), name="public")
 
 # Set up templates
 templates = Jinja2Templates(directory="templates")
+
+# Database setup
+DB_PATH = "sessions.db"
+
+def init_db():
+    """Initialize the SQLite database"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS session_mapping (
+            ssid TEXT PRIMARY KEY,
+            qv TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def save_session_mapping(ssid: str, qv: str):
+    """Save ssid -> qv mapping to database"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT OR REPLACE INTO session_mapping (ssid, qv) VALUES (?, ?)",
+        (ssid, qv)
+    )
+    conn.commit()
+    conn.close()
+
+def get_qv_for_ssid(ssid: str) -> str:
+    """Look up qv value for a given ssid"""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT qv FROM session_mapping WHERE ssid = ?", (ssid,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+# Initialize database on startup
+init_db()
 
 
 @app.get("/robots.txt", response_class=Response)
@@ -70,11 +112,43 @@ async def home(request: Request):
     )
 
 
+@app.get("/session")
+async def session_redirect(request: Request, ssid: str = None, qv: str = None):
+    """
+    Session route that redirects to /share with both parameters.
+    This route is used in og:url but redirects to the full /share URL.
+
+    If qv is missing, it looks up the value from the database using ssid.
+    """
+    # Build the redirect URL with both parameters
+    if ssid:
+        # If qv is not provided, look it up from database
+        if not qv:
+            qv = get_qv_for_ssid(ssid)
+
+        # If we found qv, redirect with both parameters
+        if qv:
+            redirect_url = f"/share?ssid={ssid}&qv={qv}"
+        else:
+            # No qv found, just redirect with ssid
+            redirect_url = f"/share?ssid={ssid}"
+    elif qv:
+        redirect_url = f"/share?qv={qv}"
+    else:
+        redirect_url = "/share"
+
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
 @app.get("/share", response_class=HTMLResponse)
 async def share_with_query(request: Request, qv: str = None, ssid: str = None):
     """Image sharing page with two query parameters to test Facebook crawling issue"""
     image_url = f"{request.base_url}public/image.jpg"
     page_url = str(request.url)
+
+    # Save the mapping to database when both parameters are present
+    if qv and ssid:
+        save_session_mapping(ssid, qv)
 
     # Check if parameters exist and their order in the query string
     query_string = str(request.url.query)
@@ -92,11 +166,11 @@ async def share_with_query(request: Request, qv: str = None, ssid: str = None):
             redirect_url = f"{request.base_url}share?ssid={ssid}&qv={qv}"
             meta_refresh = redirect_url
 
-    # For og:url, intentionally drop qv parameter to replicate the issue
+    # For og:url, point to /session path with only ssid parameter to replicate the issue
     if ssid and qv:
-        og_url = f"{request.base_url}share?ssid={ssid}"  # Missing qv!
+        og_url = f"{request.base_url}session?ssid={ssid}"  # Different path, missing qv!
     elif ssid:
-        og_url = f"{request.base_url}share?ssid={ssid}"
+        og_url = f"{request.base_url}session?ssid={ssid}"
     elif qv:
         og_url = f"{request.base_url}share?qv={qv}"
     else:
