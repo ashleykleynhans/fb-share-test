@@ -169,22 +169,25 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
     from datetime import datetime
     current_time = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-    # Use list of tuples to allow duplicate headers
-    headers = [
-        ("Cache-Control", "max-age=0, must-revalidate, private"),
-        ("Expires", current_time),
-        ("Server", "Share Tester 1.0.0"),
-        ("Backend-Version", "v1"),
-        ("Strict-Transport-Security", "max-age=31536000; includeSubDomains"),
-        ("Access-Control-Allow-Origin", "*"),
-        ("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"),
-        ("Access-Control-Allow-Headers", "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token"),
-        ("Access-Control-Expose-Headers", "Authorization,user-token"),
-        ("Vary", "Accept-Encoding"),
-        ("Vary", "Accept-Encoding")  # Duplicate header
-    ]
+    # Create response
+    response = HTMLResponse(content=html_content)
 
-    return HTMLResponse(content=html_content, headers=headers)
+    # Set headers using init_headers and raw_headers for duplicates
+    response.headers["Cache-Control"] = "max-age=0, must-revalidate, private"
+    response.headers["Expires"] = current_time
+    response.headers["Server"] = "Share Tester 1.0.0"
+    response.headers["Backend-Version"] = "v1"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token"
+    response.headers["Access-Control-Expose-Headers"] = "Authorization,user-token"
+
+    # Add duplicate Vary headers using raw_headers
+    response.raw_headers.append((b"vary", b"Accept-Encoding"))
+    response.raw_headers.append((b"vary", b"Accept-Encoding"))
+
+    return response
 
 
 @app.get("/share", response_class=HTMLResponse)
