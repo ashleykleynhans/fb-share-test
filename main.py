@@ -167,27 +167,27 @@ async def session_redirect(request: Request, ssid: str = None, qv: str = None):
 
     # Create response with custom headers
     from datetime import datetime
+    from starlette.responses import Response
+
     current_time = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-    # Create response
-    response = HTMLResponse(content=html_content)
+    # Build raw_headers list with duplicates
+    raw_headers = [
+        (b"content-type", b"text/html; charset=utf-8"),
+        (b"cache-control", b"max-age=0, must-revalidate, private"),
+        (b"expires", current_time.encode()),
+        (b"server", b"Share Tester 1.0.0"),
+        (b"backend-version", b"v1"),
+        (b"strict-transport-security", b"max-age=31536000; includeSubDomains"),
+        (b"access-control-allow-origin", b"*"),
+        (b"access-control-allow-methods", b"GET, POST, PUT, DELETE, OPTIONS"),
+        (b"access-control-allow-headers", b"Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token"),
+        (b"access-control-expose-headers", b"Authorization,user-token"),
+        (b"vary", b"Accept-Encoding"),
+        (b"vary", b"Accept-Encoding")  # Duplicate header
+    ]
 
-    # Set headers using init_headers and raw_headers for duplicates
-    response.headers["Cache-Control"] = "max-age=0, must-revalidate, private"
-    response.headers["Expires"] = current_time
-    response.headers["Server"] = "Share Tester 1.0.0"
-    response.headers["Backend-Version"] = "v1"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,user-token"
-    response.headers["Access-Control-Expose-Headers"] = "Authorization,user-token"
-
-    # Add duplicate Vary headers using raw_headers
-    response.raw_headers.append((b"vary", b"Accept-Encoding"))
-    response.raw_headers.append((b"vary", b"Accept-Encoding"))
-
-    return response
+    return Response(content=html_content, media_type="text/html", headers=raw_headers)
 
 
 @app.get("/share", response_class=HTMLResponse)
